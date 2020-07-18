@@ -1,29 +1,67 @@
 package com.digitalartstudio.network;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class HTTPClient {
 	
-	public String sendGET(String url) throws Exception{
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        return sendHttpGet(connection);
+	private HttpURLConnection connection;
+	
+	public void openConnectionProxy(String destUrl, String proxyIp, int proxyPort) throws MalformedURLException, IOException {
+		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+		connection = (HttpURLConnection) new URL(destUrl).openConnection(webProxy);
 	}
 	
-	public String sendGETUsingProxy(String url, String ip, int port) throws Exception{
-		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ip, port));
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(webProxy);
-
-        return sendHttpGet(connection);
+	public void openSecureConnectionProxy(String destUrl, String proxyIp, int proxyPort) throws MalformedURLException, IOException {
+		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+		connection = (HttpsURLConnection) new URL(destUrl).openConnection(webProxy);
 	}
 	
-	private String sendHttpGet(HttpURLConnection connection) throws Exception{
-		connection.setRequestMethod("GET");
-
+	public void openConnection(String destUrl) throws MalformedURLException, IOException {
+		connection = (HttpURLConnection) new URL(destUrl).openConnection();
+	}
+	
+	public void openSecureConnection(String destUrl) throws MalformedURLException, IOException {
+		connection = (HttpsURLConnection) new URL(destUrl).openConnection();
+	}
+	
+	public void setHTTPMethod(String method) throws ProtocolException {
+		connection.setRequestMethod(method);
+	}
+	
+	public boolean usingProxy() {
+		return connection.usingProxy();
+	}
+	
+	public void setHeader(String key, String value) {
+		connection.setRequestProperty(key, value);
+	}
+	
+	public void connect() throws IOException {
+		connection.connect();
+	}
+	
+	public int getResponseCode() throws IOException {
+		return connection.getResponseCode();
+	}
+	
+	public Map<String, List<String>> getCookies(){
+		return connection == null ? null : connection.getHeaderFields();
+	}
+	
+	public StringBuilder readHTTPBodyResponse() throws Exception{
         try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(connection.getInputStream()))) {
 
@@ -31,49 +69,33 @@ public class HTTPClient {
             String line;
 
             while ((line = in.readLine()) != null) {
-                response.append(line);
+                response.append(line + System.lineSeparator());
             }
-
-            return response.toString();
+            return response;
         }
 	}
-
-//	public String sendPost() throws Exception {
-//        String url = "http://46.101.113.185/";
-//
-//        HttpURLConnection httpClient = (HttpURLConnection) new URL(url).openConnection();
-//
-//        httpClient.setRequestMethod("POST");
-////        httpClient.setRequestProperty("User-Agent", "Mozilla/5.0");
-////        httpClient.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-//
-//        String urlParameters = "https://www.etsy.com/listing/832696465/aquamarine-bracelet-raw-stone-jewelry?ref=hp_rf-2&pro=1&frs=1";
-////Щ
-//        httpClient.setDoOutput(true);
-//        try (DataOutputStream wr = new DataOutputStream(httpClient.getOutputStream())) {
-//            wr.writeBytes(urlParameters);
-//            wr.flush();
-//        }
-//
-//        int responseCode = httpClient.getResponseCode();
-//        System.out.println("\nSending 'POST' request to URL : " + url);
-////        System.out.println("Post parameters : " + urlParameters);
-//        System.out.println("Response Code : " + responseCode);
-//
-//        try (BufferedReader in = new BufferedReader(
-//                new InputStreamReader(httpClient.getInputStream()))) {
-//
-//            String line;
-//            StringBuilder response = new StringBuilder();
-//
-//            while ((line = in.readLine()) != null) {
-//                response.append(line);
-//            }
-//
-//            //print result
-//            System.out.println(response.toString());
-//            return response.toString();
-//        }
-//
-//    }
+	
+	public boolean writeHTTPBodyRequest(String body)  {
+		connection.setDoOutput(true);
+        try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+            wr.writeBytes(body);
+            wr.flush();
+        }catch(IOException e) {
+        	e.printStackTrace();
+        	return false;
+        }
+        return true;
+	}
+	
+	public void disconnect() {
+		connection.disconnect();
+	}
+	
+	public HttpURLConnection getConnection() {
+		return connection;
+	}
+	
+	public void setConnection(HttpURLConnection connection) {
+		this.connection = connection;
+	}
 }

@@ -1,4 +1,4 @@
-package com.digitalartstudio.json;
+package com.digitalartstudio.json.foxtools;
 
 import java.util.Map;
 
