@@ -23,6 +23,9 @@ public class Main {
 	
 	
 		EtsyBot bot = new EtsyBot();
-		bot.addToCart("https://www.etsy.com/listing/825838370/summer-print-whiskey-sour-poster?ref=shop_home_active_5");
+//		bot.addToCart("https://www.etsy.com/listing/825838370/summer-print-whiskey-sour-poster?ref=shop_home_active_5");
+		bot.searchListingByTag("822848230", "pisces zodiac sign print");
+		
+//		pisces zodiac sign print
 	}
 }

@@ -11,7 +11,7 @@ import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -57,8 +57,14 @@ public class HTTPClient {
 		return connection.getResponseCode();
 	}
 	
-	public Map<String, List<String>> getCookies(){
-		return connection == null ? null : connection.getHeaderFields();
+	public List<String> separateCookieFromMeta(){
+		return connection.getHeaderFields().get("Set-Cookie").parallelStream().map(str -> str.split(";")[0]).collect(Collectors.toList());
+	}
+	
+	public void setDeafaultOptions(String method) throws Exception {
+		setHeader("User-Agent", "Mozilla/5.0");
+		setHeader("Connection", "Keep-Alive");
+		setHTTPMethod(method);
 	}
 	
 	public StringBuilder readHTTPBodyResponse() throws Exception{
