@@ -8,7 +8,7 @@ import com.digitalartstudio.api.ProxyAPI;
 import com.digitalartstudio.network.HTTPClient;
 
 public class Bot {
-	
+
 	protected List<ProxyAPI> proxies;
 	
 	public Bot() {

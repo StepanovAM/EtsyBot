@@ -34,6 +34,7 @@ public class FoxtoolsAPI implements ProxyAPI{
 				response = resp;
 			else
 				response.getItems().addAll(resp.getItems());
+
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}

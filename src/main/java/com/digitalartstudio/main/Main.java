@@ -5,7 +5,6 @@ import com.digitalartstudio.bot.EtsyBot;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
-		
 //		Bot bot = new Bot();
 //		bot.lookupProxyList(new FoxtoolsAPI());
 //		bot.lookupProxyList(new ProxyListAPI());
