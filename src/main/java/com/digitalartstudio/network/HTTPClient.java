@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -12,13 +13,13 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-
 import javax.net.ssl.HttpsURLConnection;
 
 public class HTTPClient {
 	
 	private HttpURLConnection connection;
 	
+
 	public void openConnectionProxy(String destUrl, String proxyIp, int proxyPort) throws MalformedURLException, IOException {
 		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
 		connection = (HttpURLConnection) new URL(destUrl).openConnection(webProxy);
@@ -60,7 +61,7 @@ public class HTTPClient {
 	public Map<String, List<String>> getCookies(){
 		return connection == null ? null : connection.getHeaderFields();
 	}
-	
+  
 	public StringBuilder readHTTPBodyResponse() throws Exception{
         try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(connection.getInputStream()))) {
@@ -90,7 +91,7 @@ public class HTTPClient {
 	public void disconnect() {
 		connection.disconnect();
 	}
-	
+
 	public HttpURLConnection getConnection() {
 		return connection;
 	}

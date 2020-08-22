@@ -25,6 +25,7 @@ public class ProxyEleven implements ProxyAPI{
 
 	@Override
 	public void parseResponse(StringBuilder response) {
+
 		try {
 			this.response =  new ObjectMapper().readValue(response.toString(), ProxyElevenJSON.class);
 		} catch (Exception e) {

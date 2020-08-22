@@ -1,7 +1,6 @@
 package com.digitalartstudio.bot;
 
 import java.util.stream.Collectors;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 

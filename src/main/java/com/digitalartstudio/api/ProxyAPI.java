@@ -8,4 +8,5 @@ public interface ProxyAPI {
 	List<String> getUrls();
 	Map<String, Integer> getRemoteHosts();
 	void parseResponse(StringBuilder response);
+
 }

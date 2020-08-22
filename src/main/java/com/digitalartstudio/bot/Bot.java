@@ -2,12 +2,12 @@ package com.digitalartstudio.bot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
+import java.util.stream.Stream;
 import com.digitalartstudio.api.ProxyAPI;
 import com.digitalartstudio.network.HTTPClient;
 
-public class Bot {
+public abstract class Bot {
 	
 	protected List<ProxyAPI> proxies;
 	

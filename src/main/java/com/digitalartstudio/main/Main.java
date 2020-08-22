@@ -20,9 +20,8 @@ public class Main {
 ////				"https://www.etsy.com/listing/840837007/set-of-zodiac-signs-digital-files?ref=shop_home_active_1&pro=1",
 ////				"https://www.etsy.com/listing/840823719/summer-prints-set-of-posters-cocktails?ref=shop_home_active_2&pro=1",
 ////				"https://www.pinterest.ru/pin/836965911991191422/feedback/?invite_code=fa03daf459464f54b14369b162ae11c6&sender_id=836966049407813314");
-	
-	
 		EtsyBot bot = new EtsyBot();
 		bot.addToCart("https://www.etsy.com/listing/825838370/summer-print-whiskey-sour-poster?ref=shop_home_active_5");
+
 	}
 }
