@@ -10,7 +10,9 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -18,14 +20,24 @@ import javax.net.ssl.HttpsURLConnection;
 public class HTTPClient {
 	
 	private HttpURLConnection connection;
+	private Proxy webProxy;
+	private Map<String, String> headers = new HashMap<>();    
 	
-	public void openConnectionProxy(String destUrl, String proxyIp, int proxyPort) throws MalformedURLException, IOException {
-		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+	public HTTPClient() {}
+	
+	public HTTPClient(String proxyIp, int proxyPort, String type) {
+		switch(type) {
+			case "HTTP": webProxy  = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort)); break;
+			case "SOCKS": webProxy  = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(proxyIp, proxyPort)); break;
+			default: webProxy  = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort)); break;
+		}
+	}
+	
+	public void openConnectionProxy(String destUrl) throws MalformedURLException, IOException {
 		connection = (HttpURLConnection) new URL(destUrl).openConnection(webProxy);
 	}
 	
-	public void openSecureConnectionProxy(String destUrl, String proxyIp, int proxyPort) throws MalformedURLException, IOException {
-		Proxy webProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
+	public void openSecureConnectionProxy(String destUrl) throws MalformedURLException, IOException {
 		connection = (HttpsURLConnection) new URL(destUrl).openConnection(webProxy);
 	}
 	
@@ -45,6 +57,12 @@ public class HTTPClient {
 		return connection.usingProxy();
 	}
 	
+	public void setCookiesAutomatically() {
+		StringBuilder sb = new StringBuilder();
+		headers.forEach((key, value) -> sb.append(key + "=" + value + "; "));
+		connection.setRequestProperty("Cookie", sb.toString());
+	}
+	
 	public void setHeader(String key, String value) {
 		connection.setRequestProperty(key, value);
 	}
@@ -57,7 +75,7 @@ public class HTTPClient {
 		return connection.getResponseCode();
 	}
 	
-	public List<String> separateCookieFromMeta(){
+	public List<String> separateResponseCookieFromMeta(){
 		return connection.getHeaderFields().get("Set-Cookie").parallelStream().map(str -> str.split(";")[0]).collect(Collectors.toList());
 	}
 	
@@ -103,5 +121,21 @@ public class HTTPClient {
 	
 	public void setConnection(HttpURLConnection connection) {
 		this.connection = connection;
+	}
+
+	public Proxy getWebProxy() {
+		return webProxy;
+	}
+
+	public void setWebProxy(Proxy webProxy) {
+		this.webProxy = webProxy;
+	}
+
+	public Map<String, String> getSessCokies() {
+		return headers;
+	}
+
+	public void setSessCokies(Map<String, String> sessCokies) {
+		this.headers = sessCokies;
 	}
 }

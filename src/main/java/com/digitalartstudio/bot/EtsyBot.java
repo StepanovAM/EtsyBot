@@ -1,124 +1,109 @@
 package com.digitalartstudio.bot;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.digitalartstudio.network.HTTPClient;
 
 public class EtsyBot extends Bot{
-	
 	private String cart = "https://www.etsy.com/cart/listing.php";
 	
-	public void addToCart(String... listing){
-		proxies.forEach(proxy -> {
-			proxy.getRemoteHosts().forEach((ip, port) -> {
-				new Thread(() ->  {
-					for(String destUrl : listing) {
-						try {
-							singleRequestPuttingToCart(destUrl, ip, port);
-						}catch(Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}).start();
-			});
-			
-		});
-	}
-	
-	public void singleRequestPuttingToCart(String listing, String ip, int port) throws Exception {
-		HTTPClient client = new HTTPClient();
-		client.openSecureConnectionProxy(listing, ip, port);
-		client.setDeafaultOptions("GET");
-		
-		String html = client.readHTTPBodyResponse().toString();
-		String params = parseAddigToCartPOSTForm(html);
-		String cookie = client.getConnection().getHeaderFields().get("Set-Cookie").parallelStream().map(s -> s.split(";")[0]).collect(Collectors.joining("; "));
-		
-		client.disconnect();
-		
-		client.openSecureConnectionProxy(cart, ip, port);
-		client.setDeafaultOptions("POST");
-		client.setHeader("Cookie", cookie);
-		client.writeHTTPBodyRequest(params);
-		client.disconnect();
-	}
-	
-	private String parseAddigToCartPOSTForm(String html) {
-		Element form = Jsoup.parse(html).getElementsByClass("add-to-cart-form").first();
-		return form.getElementsByTag("input").parallelStream().map(input -> input.attr("name") + "=" + input.val()).collect(Collectors.joining("&"));
-	}
-	
-	
-	public void searchListingByTag(String id, String tag) throws Exception {
-		String correctTag = tag.replace(" ", "%20");
-		final String searchQuery = "https://www.etsy.com/search?q=" + correctTag;
+	public void executeBot(String id, String tag) {
+		final String correctTag = tag.replace(" ", "%20");
 		
 		proxies.forEach(proxy -> {
 			proxy.getRemoteHosts().forEach((ip, port) -> {
 				new Thread(() ->  {
 					try {
-						Map<String, String> sessCokies = new HashMap<>();
-						
 						HTTPClient client = new HTTPClient();
+						viewPage(client, "https://www.etsy.com/");
 						
-						client.openConnection("https://www.etsy.com/");
-						client.setDeafaultOptions("GET");
-						client.separateCookieFromMeta().forEach(cookie -> sessCokies.put(cookie.split("=")[0], cookie.split("=")[1]));
+						client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));   
 						client.disconnect();
 						
-						String href = findListingByTag(client, searchQuery, id, sessCokies);
-						sessCokies.put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
-						if(href.length() == 0) {
-							int page = 2;
-							do {
-								href = findListingByTag(client, searchQuery + "&page=" + page, id, sessCokies);
-								page++;
-							} while(page < 20 || href.length() > 0);
-							
-							if(href.length() == 0) 
-								throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
+						String html = performEtsySearch(client, "https://www.etsy.com/search?q=" + correctTag);
+						String href = parseListingOnSearchResult(html, id);
+						
+						client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
+						updateSessionCookie(client);
+						
+						while(href.length() != 0 && !href.contains("listing/" + id)) {
+							html = performEtsySearch(client, href);
+							href = parseListingOnSearchResult(html, id);
+							updateSessionCookie(client);
+							System.out.println(href);
 						}
 						
-				    	client.openConnection(href);
-				    	client.setDeafaultOptions("GET");
-						
-						sessCokies.forEach((key, value) -> client.setHeader(key, value));
-						
-						client.connect();
-						System.out.println(client.getResponseCode() + " " + client.getConnection().getResponseMessage());
+						if(href.length() == 0) 
+							throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
+							
+						addToCart(client, href);
+						System.out.println("DONE: " + client.getSessCokies().get("uaid") + " " + ip + ":" + port);
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
 				}).start();
 			});
-			
 		});
 	}
 	
-	private String findListingByTag(HTTPClient client, String url, String id, Map<String, String> sessCokies) throws Exception {
-		client.openConnection(url);
+	public String performEtsySearch(HTTPClient client, String url) throws Exception {
+		client.openSecureConnectionProxy(url);
 		client.setDeafaultOptions("GET");
-		
-		sessCokies.forEach((key, value) -> client.setHeader(key, value));
+		client.setCookiesAutomatically();
+		return client.readHTTPBodyResponse().toString();
+	}
 	
-		String html = client.readHTTPBodyResponse().toString();
-		
-		client.separateCookieFromMeta().forEach(cookie -> sessCokies.put(cookie.split("=")[0], cookie.split("=")[1]));
-	    client.disconnect();
+	public String parseListingOnSearchResult(String html, String id) {
+	    Document doc = Jsoup.parse(html);
 	    
-	    Element el = Jsoup.parse(html).getElementsByAttributeValue("data-listing-id", id).first();
-		if(el == null) 
-			return "";
+	    Element div = doc.getElementsByAttributeValue("data-listing-id", id).first();
+	    if(div!=null) { 
+	    	Element a = div.select("a").first();
+	    	if(a!=null) return a.attr("href");
+	    }
+	    
+		Element li = doc.getElementsByAttributeValue("aria-label", "Review Page Results").last().select("li").last();
+		Element a = li.select("a").first();
+		return  a.attr("href");
+	}
+	
+	public void addToCart(HTTPClient client, String... listing) throws Exception{
+		for(String destUrl : listing) {
+			client.openSecureConnectionProxy(destUrl);
+			client.setDeafaultOptions("GET");
+			client.setCookiesAutomatically();
+			updateSessionCookie(client);
 			
-		Element el1 = el.select("a").first();
-		if(el1 == null) 
-			return "";
-		
-		return el1.attr("href");
+			String html = client.readHTTPBodyResponse().toString();
+			String params = parseAddigToCartPOSTForm(html);
+			
+			client.disconnect();
+			
+			client.openSecureConnectionProxy(cart);
+			client.setDeafaultOptions("POST");
+			client.setCookiesAutomatically();
+			client.writeHTTPBodyRequest(params);
+			
+			System.out.println("OK: " + client.getResponseCode() + ", using proxy? " + client.usingProxy());
+			
+			client.disconnect();
+		}
+	}
+	
+	public String parseAddigToCartPOSTForm(String html) {
+		Element form = Jsoup.parse(html).getElementsByClass("add-to-cart-form").first();
+		return form.getElementsByTag("input").parallelStream().map(input -> input.attr("name") + "=" + input.val()).collect(Collectors.joining("&"));
+	}
+	
+	private void updateSessionCookie(HTTPClient client) {
+		client.separateResponseCookieFromMeta().forEach(cookie -> {
+			String parts[] = cookie.split("=");
+			if (!parts[0].equals("uaid")  && !parts[0].equals("user_prefs")  && !parts[0].equals("fve"))
+				client.getSessCokies().put(parts[0], parts[1]);
+		});
 	}
 }

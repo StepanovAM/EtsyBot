@@ -9,35 +9,14 @@ import com.digitalartstudio.network.HTTPClient;
 
 public class Bot {
 	
-	protected List<ProxyAPI> proxies;
+	protected List<ProxyAPI> proxies = new ArrayList<>();
 	
-	public Bot() {
-		proxies = new ArrayList<>();
-	}
-	
-	public void viewPage(String... pages) {
-		proxies.forEach(proxy -> {
-			proxy.getRemoteHosts().forEach((proxyIp, proxyPort) -> {
-				new Thread(() -> {
-					for(String destUrl : pages) {
-						HTTPClient httpClient = new HTTPClient();
-						try {
-							httpClient.openConnectionProxy(destUrl, proxyIp, proxyPort);
-							httpClient.setHeader("User-Agent", "Mozilla/5.0");
-							httpClient.setHeader("Keep-Alive", "300");
-							httpClient.setHTTPMethod("GET");
-							httpClient.connect();
-							System.out.println("OK: " + httpClient.getResponseCode() + ", using proxy? " + httpClient.usingProxy() + ", " + proxyIp + ":" + proxyPort);
-						}catch(Exception e) {
-							e.printStackTrace();
-							break;
-						}
-						httpClient.disconnect();
-					}
-				}).start();
-			});
-			
-		});
+	public void viewPage(HTTPClient client, String... pages) throws Exception {
+		for(String destUrl : pages) {
+			client.openSecureConnectionProxy(destUrl);
+			client.setDeafaultOptions("GET");
+			client.connect();
+		}
 	}
 	
 	public void lookupProxyList(ProxyAPI... api) {
