@@ -38,7 +38,8 @@ public class HTTPClient {
 	}
 	
 	public void openSecureConnectionProxy(String destUrl) throws MalformedURLException, IOException {
-		connection = (HttpsURLConnection) new URL(destUrl).openConnection(webProxy);
+		openSecureConnection(destUrl);
+//		connection = (HttpsURLConnection) new URL(destUrl).openConnection(webProxy);
 	}
 	
 	public void openConnection(String destUrl) throws MalformedURLException, IOException {

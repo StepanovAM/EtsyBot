@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.digitalartstudio.constants.Constants;
 import com.digitalartstudio.network.HTTPClient;
 
 public class EtsyBot extends Bot{
@@ -18,14 +19,15 @@ public class EtsyBot extends Bot{
 			proxy.getRemoteHosts().forEach((ip, port) -> {
 				new Thread(() ->  {
 					try {
-						HTTPClient client = new HTTPClient();
-						viewPage(client, "https://www.etsy.com/");
+						HTTPClient client = new HTTPClient(ip, port, "HTTP");
+						viewPage(client, Constants.ESTY);
 						
 						client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));   
 						client.disconnect();
 						
-						String html = performEtsySearch(client, "https://www.etsy.com/search?q=" + correctTag);
+						String html = performEtsySearch(client, Constants.ESTY + "search?q=" + correctTag);
 						String href = parseListingOnSearchResult(html, id);
+						System.out.println(href);
 						
 						client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
 						updateSessionCookie(client);
@@ -41,7 +43,7 @@ public class EtsyBot extends Bot{
 							throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
 							
 						addToCart(client, href);
-						System.out.println("DONE: " + client.getSessCokies().get("uaid") + " " + ip + ":" + port);
+						System.out.println("DONE: " + client.getSessCokies().get(Constants.ETSY_UAID));
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
@@ -102,7 +104,7 @@ public class EtsyBot extends Bot{
 	private void updateSessionCookie(HTTPClient client) {
 		client.separateResponseCookieFromMeta().forEach(cookie -> {
 			String parts[] = cookie.split("=");
-			if (!parts[0].equals("uaid")  && !parts[0].equals("user_prefs")  && !parts[0].equals("fve"))
+			if (!parts[0].equals(Constants.ETSY_UAID)  && !parts[0].equals(Constants.ETSY_USER_PREFS)  && !parts[0].equals(Constants.ETSY_FVE))
 				client.getSessCokies().put(parts[0], parts[1]);
 		});
 	}
