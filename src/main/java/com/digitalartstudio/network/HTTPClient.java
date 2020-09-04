@@ -21,7 +21,7 @@ public class HTTPClient {
 	
 	private HttpURLConnection connection;
 	private Proxy webProxy;
-	private Map<String, String> headers = new HashMap<>();    
+	private Map<String, String> sessCookies = new HashMap<>();    
 	
 	public HTTPClient() {}
 	
@@ -60,7 +60,7 @@ public class HTTPClient {
 	
 	public void setCookiesAutomatically() {
 		StringBuilder sb = new StringBuilder();
-		headers.forEach((key, value) -> sb.append(key + "=" + value + "; "));
+		sessCookies.forEach((key, value) -> sb.append(key + "=" + value + "; "));
 		connection.setRequestProperty("Cookie", sb.toString());
 	}
 	
@@ -133,10 +133,10 @@ public class HTTPClient {
 	}
 
 	public Map<String, String> getSessCokies() {
-		return headers;
+		return sessCookies;
 	}
 
 	public void setSessCokies(Map<String, String> sessCokies) {
-		this.headers = sessCokies;
+		this.sessCookies = sessCokies;
 	}
 }

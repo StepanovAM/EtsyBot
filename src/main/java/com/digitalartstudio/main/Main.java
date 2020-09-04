@@ -9,9 +9,6 @@ public class Main {
 //		bot.lookupProxyList(new FoxtoolsAPI(), new ProxyListAPI(),
 //							new ProxyEleven(), new PubProxy());
 		
-		String tag = "pisces zodiac";
-		String id = "822848230";
-		
-		bot.executeBot(id, tag);
+		bot.executeBatchBot("822848230", "print pisces zodiac");
 	}
 }
