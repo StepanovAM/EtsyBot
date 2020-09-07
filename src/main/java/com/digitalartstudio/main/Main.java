@@ -9,6 +9,7 @@ public class Main {
 //		bot.lookupProxyList(new FoxtoolsAPI(), new ProxyListAPI(),
 //							new ProxyEleven(), new PubProxy());
 		
+
 		bot.executeBatchBot("822848230", "print pisces zodiac");
 	}
 }
