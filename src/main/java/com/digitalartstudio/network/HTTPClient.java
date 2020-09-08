@@ -61,7 +61,7 @@ public class HTTPClient {
 	public void setCookiesAutomatically() {
 		StringBuilder sb = new StringBuilder();
 		sessCookies.forEach((key, value) -> sb.append(key + "=" + value + "; "));
-		connection.setRequestProperty("Cookie", sb.toString());
+		if(sb.length() > 0) connection.setRequestProperty("Cookie", sb.toString());
 	}
 	
 	public void setHeader(String key, String value) {

@@ -15,7 +15,8 @@ public class Bot {
 		for(String destUrl : pages) {
 			client.openSecureConnectionProxy(destUrl);
 			client.setDeafaultOptions("GET");
-			client.connect();
+			client.setCookiesAutomatically();
+			client.readHTTPBodyResponse();
 		}
 	}
 	
