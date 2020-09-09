@@ -2,6 +2,8 @@ package com.digitalartstudio.bot;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
@@ -17,11 +19,13 @@ public class EtsyBot extends Bot{
 	public void executeBatchBot(String id, String tag) {
 		final String correctTag = tag.replace(" ", "%20");
 		
+//		ExecutorService pool = Executors.newFixedThreadPool(20); 
+		
 //		proxies.forEach(proxy -> {
 //			proxy.getRemoteHosts().forEach((ip, port) -> {
-//				new Thread(() ->  {
+//				Runnable run = () -> {
 					try {
-//						HTTPClient client = new HTTPClient("102.129.249.120", 8080, "HTTP");
+//						HTTPClient client = new HTTPClient(ip, port, "HTTP");
 						HTTPClient client = new HTTPClient();
 						viewPage(client, Constants.ETSY_HOME);
 						
@@ -38,7 +42,7 @@ public class EtsyBot extends Bot{
 							client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
 							client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));
 							System.out.println(href);
-						}while(href.length() != 0 && !href.contains("listing/" + id));
+						}while(href.length() != 0 && !href.contains("/listing/" + id));
 						
 						if(href == null || href.length() == 0) 
 							throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
@@ -49,9 +53,12 @@ public class EtsyBot extends Bot{
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
-//				}).start();
+//				};
+//				pool.execute(run);
 //			});
 //		});
+//		
+//		pool.shutdown();
 	}
 	
 	public String performEtsySearch(HTTPClient client, String url) throws Exception {
