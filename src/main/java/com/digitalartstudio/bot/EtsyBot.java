@@ -19,14 +19,14 @@ public class EtsyBot extends Bot{
 	public void executeBatchBot(String id, String tag) {
 		final String correctTag = tag.replace(" ", "%20");
 		
-//		ExecutorService pool = Executors.newFixedThreadPool(20); 
+		ExecutorService pool = Executors.newFixedThreadPool(20); 
 		
-//		proxies.forEach(proxy -> {
-//			proxy.getRemoteHosts().forEach((ip, port) -> {
-//				Runnable run = () -> {
+		proxyProviders.forEach(proxy -> {
+			proxy.getRemoteHosts().forEach((ip, port) -> {
+				Runnable runnable = () -> {
 					try {
-//						HTTPClient client = new HTTPClient(ip, port, "HTTP");
-						HTTPClient client = new HTTPClient();
+						HTTPClient client = new HTTPClient(ip, port, "HTTP");
+//						HTTPClient client = new HTTPClient();
 						viewPage(client, Constants.ETSY_HOME);
 						
 						client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));   
@@ -39,6 +39,7 @@ public class EtsyBot extends Bot{
 							html = performEtsySearch(client, href);
 							href = parseListingOnSearchResult(html, id);
 							
+							client.disconnect();
 							client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
 							client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));
 							System.out.println(href);
@@ -53,12 +54,12 @@ public class EtsyBot extends Bot{
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
-//				};
-//				pool.execute(run);
-//			});
-//		});
-//		
-//		pool.shutdown();
+				};
+				pool.execute(runnable);
+			});
+		});
+		
+		pool.shutdown();
 	}
 	
 	public String performEtsySearch(HTTPClient client, String url) throws Exception {
@@ -75,7 +76,7 @@ public class EtsyBot extends Bot{
 	    if(div!=null) 
 	    	return div.select("a").first().attr("href");
 	    
-	    Elements elements = doc.select("[href*=" + "listing/" + id + "]");
+	    Elements elements = doc.select("[href*=" + "/listing/" + id + "]");
     	if(elements!=null && elements.size() > 0) 
     		return elements.attr("href");
 	    

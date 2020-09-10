@@ -1,8 +1,8 @@
-package com.digitalartstudio.json.foxtools;
+package com.digitalartstudio.proxyproviders.json.foxtools;
 
 import java.util.List;
 
-public class Response {
+public class ResponseJSON {
 	private int pageNumber;
 	private int pageCount;
 	private List<ProxyResultItem> items;

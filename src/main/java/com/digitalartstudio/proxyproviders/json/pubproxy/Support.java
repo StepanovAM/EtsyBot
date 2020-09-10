@@ -1,4 +1,4 @@
-package com.digitalartstudio.json.pubproxy;
+package com.digitalartstudio.proxyproviders.json.pubproxy;
 
 public class Support {
 	

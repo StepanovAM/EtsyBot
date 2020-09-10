@@ -1,4 +1,4 @@
-package com.digitalartstudio.json.proxyeleven;
+package com.digitalartstudio.proxyproviders.json.proxyeleven;
 
 import java.util.List;
 

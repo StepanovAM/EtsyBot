@@ -9,6 +9,9 @@ public class Main {
 //		bot.lookupProxyList(new FoxtoolsAPI(), new ProxyListAPI(),
 //							new ProxyEleven(), new PubProxy());
 		
-		bot.executeBatchBot("840823719", "cocktail poster set");
+//		bot.executeBatchBot("867167949", "seasonal sign");
+		bot.executeBatchBot("867167949", "halloween poster");
+//		bot.executeBatchBot("867167949", "happy halloween art");
+//		bot.executeBatchBot("867167949", "pumpkin sign svg");
 	}
 }

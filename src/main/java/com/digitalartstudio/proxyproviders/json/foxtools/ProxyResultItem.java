@@ -1,4 +1,4 @@
-package com.digitalartstudio.json.foxtools;
+package com.digitalartstudio.proxyproviders.json.foxtools;
 
 import java.util.Map;
 
