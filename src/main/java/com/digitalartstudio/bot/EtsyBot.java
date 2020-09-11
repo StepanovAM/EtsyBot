@@ -18,7 +18,7 @@ public class EtsyBot extends Bot{
 
 	public void executeBatchBot(String id, String tag) {
 		final String correctTag = tag.replace(" ", "%20");
-		
+
 		ExecutorService pool = Executors.newFixedThreadPool(20); 
 		
 		proxyProviders.forEach(proxy -> {
@@ -38,7 +38,6 @@ public class EtsyBot extends Bot{
 						do {
 							html = performEtsySearch(client, href);
 							href = parseListingOnSearchResult(html, id);
-							
 							client.disconnect();
 							client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
 							client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));
