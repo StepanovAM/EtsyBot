@@ -1,8 +1,8 @@
-package com.digitalartstudio.proxyproviders;
+package com.digitalartstudio.proxy.providers;
 
 import java.util.List;
 
-import com.digitalartstudio.proxyproviders.json.proxyeleven.ProxyElevenJSON;
+import com.digitalartstudio.proxy.providers.json.proxyeleven.ProxyElevenJSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ProxyElevenProxyProvider extends ProxyProvider{

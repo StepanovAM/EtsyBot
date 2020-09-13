@@ -1,4 +1,4 @@
-package com.digitalartstudio.json.pubproxy;
+package com.digitalartstudio.proxy.providers.json.pubproxy;
 
 import java.util.List;
 

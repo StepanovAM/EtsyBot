@@ -1,4 +1,4 @@
-package com.digitalartstudio.proxyproviders.json.foxtools;
+package com.digitalartstudio.proxy.providers.json.foxtools;
 
 import java.util.List;
 

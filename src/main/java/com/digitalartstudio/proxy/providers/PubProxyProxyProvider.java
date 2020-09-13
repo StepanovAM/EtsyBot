@@ -1,8 +1,8 @@
-package com.digitalartstudio.proxyproviders;
+package com.digitalartstudio.proxy.providers;
 
 import java.util.List;
 
-import com.digitalartstudio.proxyproviders.json.pubproxy.Response;
+import com.digitalartstudio.proxy.providers.json.pubproxy.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PubProxyProxyProvider extends ProxyProvider{

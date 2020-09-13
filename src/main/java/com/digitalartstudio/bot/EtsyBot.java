@@ -2,6 +2,8 @@ package com.digitalartstudio.bot;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -13,52 +15,69 @@ import org.jsoup.select.Elements;
 
 import com.digitalartstudio.constants.Constants;
 import com.digitalartstudio.network.HTTPClient;
+import com.digitalartstudio.proxy.providers.FoxtoolsProxyProvider;
+import com.digitalartstudio.proxy.providers.ProxyElevenProxyProvider;
+import com.digitalartstudio.proxy.providers.ProxyListProxyProvider;
+import com.digitalartstudio.proxy.providers.PubProxyProxyProvider;
 
 public class EtsyBot extends Bot{
-
-	public void executeBatchBot(String id, String tag) {
-		final String correctTag = tag.replace(" ", "%20");
-
-		ExecutorService pool = Executors.newFixedThreadPool(20); 
+	
+	public EtsyBot() {
+		lookupProxyList(
+				new FoxtoolsProxyProvider(), 
+				new ProxyListProxyProvider(),
+				new ProxyElevenProxyProvider(), 
+				new PubProxyProxyProvider());
+	}
+	
+	public void executeInPoolThreadBatchBot(Map<String, List<String>> data) {
+		ExecutorService executor = Executors.newFixedThreadPool(800); 
 		
-		proxyProviders.forEach(proxy -> {
-			proxy.getRemoteHosts().forEach((ip, port) -> {
-				Runnable runnable = () -> {
-					try {
-						HTTPClient client = new HTTPClient(ip, port, "HTTP");
-//						HTTPClient client = new HTTPClient();
-						viewPage(client, Constants.ETSY_HOME);
+		whiteListHosts.forEach((ip, port) -> {
+			Runnable runnable = () -> {
+				try {
+					HTTPClient client = new HTTPClient(ip, port, "HTTP");
+					viewPage(client, Constants.ETSY_HOME);
+					
+					client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));   
+					client.disconnect();
 						
-						client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));   
-						client.disconnect();
-						
-						String href = Constants.ETSY_HOME + "search?q=" + correctTag;
-						String html;
-						System.out.println(href);
-						do {
-							html = performEtsySearch(client, href);
-							href = parseListingOnSearchResult(html, id);
-							client.disconnect();
-							client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
-							client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));
-							System.out.println(href);
-						}while(href.length() != 0 && !href.contains("/listing/" + id));
-						
-						if(href == null || href.length() == 0) 
-							throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
-							
-//						addToCart(client, href);
-						viewPage(client, href);
-						System.out.println("DONE: " + client.getSessCokies().get(Constants.ETSY_SESS_UAID));
-					}catch(Exception e) {
-						e.printStackTrace();
-					}
-				};
-				pool.execute(runnable);
-			});
+					data.forEach((id, tags) -> {
+						tags.forEach(tag -> {
+							try {
+								String correctTag = tag.replace(" ", "%20");
+								String href = Constants.ETSY_HOME + "search?q=" + correctTag;
+								String html;
+								
+								client.getSessCokies().put("search_options", "{\"prev_search_term\":\"" + correctTag + "\",\"item_language\":null,\"language_carousel\":null}");
+								do {
+									html = performEtsySearch(client, href);
+									href = parseListingOnSearchResult(html, id);
+									
+									client.disconnect();
+									client.separateResponseCookieFromMeta().forEach(cookie -> client.getSessCokies().put(cookie.split("=")[0], cookie.split("=")[1]));
+									System.out.println(href + " " + ip + ":" + port);
+								}while(href.length() != 0 && !href.contains("/listing/" + id));
+								
+								if(href == null || href.length() == 0) 
+									throw new IllegalArgumentException("Не удалось найти листинг по заданному тэгу");
+									
+								viewPage(client, href);
+								System.out.println("DONE: " + client.getSessCokies().get(Constants.ETSY_SESS_UAID) + " " + ip + ":" + port);
+							}catch(IllegalArgumentException e) {
+								System.out.println("NOPE: " + tag + " " + e.getMessage() + " " + ip + ":" + port);
+							}catch(Exception e) {
+									
+							}
+						}); 
+					});
+				}catch(Exception e) {
+					removeHost(ip, port);
+				}
+			};
+			executor.execute(runnable);
 		});
-		
-		pool.shutdown();
+		executor.shutdown();
 	}
 	
 	public String performEtsySearch(HTTPClient client, String url) throws Exception {

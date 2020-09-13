@@ -1,15 +1,35 @@
 package com.digitalartstudio.bot;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.digitalartstudio.network.HTTPClient;
-import com.digitalartstudio.proxyproviders.ProxyProvider;
+import com.digitalartstudio.proxy.ProxyWorker;
+import com.digitalartstudio.proxy.providers.ProxyProvider;
 
 public class Bot {
 	
-	protected List<ProxyProvider> proxyProviders = new ArrayList<>();
+	protected Map<String, Integer> whiteListHosts = new ConcurrentHashMap<>();
+	protected ProxyWorker pWorker = new ProxyWorker(whiteListHosts);
+	
+	public void lookupProxyList(ProxyProvider... proxyProvider) {
+		pWorker.reveal(proxyProvider);
+	}
+	
+	public void launchProxyFilter() {
+		whiteListHosts = pWorker.filterHosts();
+	}
+	
+	public void launchProxyUpdater() {
+		pWorker.launchUpdater();
+	}
+	
+	public void removeHost(String ip, int port) {
+		whiteListHosts.remove(ip, port);
+		
+		if(whiteListHosts.size() < 20 && pWorker.getpUpdater() != null) 
+			pWorker.updateHosts();
+	}
 	
 	public void viewPage(HTTPClient client, String... pages) throws Exception {
 		for(String destUrl : pages) {
@@ -18,16 +38,5 @@ public class Bot {
 			client.setCookiesAutomatically();
 			client.readHTTPBodyResponse();
 		}
-	}
-	
-	public void lookupProxyList(ProxyProvider... proxyProvider) {
-		Stream.of(proxyProvider).forEach(proxy -> {
-			proxy.updateHosts();
-			proxyProviders.add(proxy);
-		});
-	}
-	
-	public void launchProxyUpdater() {
-		proxyProviders.stream().forEach(proxy -> proxy.updateHosts());
 	}
 }

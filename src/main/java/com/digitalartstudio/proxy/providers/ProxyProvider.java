@@ -1,4 +1,4 @@
-package com.digitalartstudio.proxyproviders;
+package com.digitalartstudio.proxy.providers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +16,9 @@ public abstract class ProxyProvider {
 	public Map<String, Integer> getRemoteHosts(){
 		return hosts;
 	};
-	
+	public void setHosts(Map<String, Integer> hosts) {
+		this.hosts = hosts;
+	}
 	public void updateHosts() {
 		HTTPClient httpClient = new HTTPClient();
 		getUrls().forEach(url -> {
