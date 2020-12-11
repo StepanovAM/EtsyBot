@@ -1,7 +1,5 @@
 package com.digitalartstudio.bot;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +29,7 @@ public class EtsyBot extends Bot{
 	}
 	
 	public void executeInPoolThreadBatchBot(Map<String, List<String>> data) {
-		ExecutorService executor = Executors.newFixedThreadPool(800); 
+		ExecutorService executor = Executors.newFixedThreadPool(20); 
 		
 		whiteListHosts.forEach((ip, port) -> {
 			Runnable runnable = () -> {
@@ -67,11 +65,12 @@ public class EtsyBot extends Bot{
 							}catch(IllegalArgumentException e) {
 								System.out.println("NOPE: " + tag + " " + e.getMessage() + " " + ip + ":" + port);
 							}catch(Exception e) {
-									
+								System.out.println("NOPE: " + tag + " " + e.getMessage() + " " + ip + ":" + port);
 							}
 						}); 
 					});
 				}catch(Exception e) {
+					System.out.println("NOPE: " + ip + ":" + port);
 					removeHost(ip, port);
 				}
 			};
@@ -128,11 +127,5 @@ public class EtsyBot extends Bot{
 	public String parseAddigToCartPOSTForm(String html) {
 		Element form = Jsoup.parse(html).getElementsByClass("add-to-cart-form").first();
 		return form.getElementsByTag("input").parallelStream().map(input -> input.attr("name") + "=" + input.val()).collect(Collectors.joining("&"));
-	}
-	
-	public void writeToFile(String str, String fileName) throws Exception {
-	    BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-	    writer.write(str);
-	    writer.close();
 	}
 }

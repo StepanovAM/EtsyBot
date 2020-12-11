@@ -1,7 +1,8 @@
 package com.digitalartstudio.bot;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.concurrent.ConcurrentMap;
 
 import com.digitalartstudio.network.HTTPClient;
 import com.digitalartstudio.proxy.ProxyWorker;
@@ -9,8 +10,8 @@ import com.digitalartstudio.proxy.providers.ProxyProvider;
 
 public class Bot {
 	
-	protected Map<String, Integer> whiteListHosts = new ConcurrentHashMap<>();
-	protected ProxyWorker pWorker = new ProxyWorker(whiteListHosts);
+	protected ConcurrentMap<String, Integer> whiteListHosts;
+	protected ProxyWorker pWorker = new ProxyWorker();
 	
 	public void lookupProxyList(ProxyProvider... proxyProvider) {
 		pWorker.reveal(proxyProvider);
@@ -27,8 +28,13 @@ public class Bot {
 	public void removeHost(String ip, int port) {
 		whiteListHosts.remove(ip, port);
 		
-		if(whiteListHosts.size() < 20 && pWorker.getpUpdater() != null) 
+		if(whiteListHosts.size() < 470 && pWorker.getpUpdater() != null && !pWorker.isNotifyingUpdater) {
+			pWorker.isNotifyingUpdater = true;
 			pWorker.updateHosts();
+			whiteListHosts = pWorker.filterHosts();
+			pWorker.isNotifyingUpdater = false;
+		}
+		System.out.println("map size: " + whiteListHosts.size());
 	}
 	
 	public void viewPage(HTTPClient client, String... pages) throws Exception {
@@ -38,5 +44,11 @@ public class Bot {
 			client.setCookiesAutomatically();
 			client.readHTTPBodyResponse();
 		}
+	}
+	
+	public void writeToFile(String str, String fileName) throws Exception {
+	    BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+	    writer.write(str);
+	    writer.close();
 	}
 }
